@@ -1,17 +1,24 @@
 {
-	"name": "monorepo",
-	"version": "0.0.0",
-	"private": true,
-	"scripts": {
-		"dev": "concurrently --kill-others --raw \"npm run dev --prefix apps/web\"",
-		"build": "concurrently --raw \"npm run build --prefix apps/web\"",
-		"start": "concurrently --kill-others --raw",
-		"lint": "concurrently --raw \"npm run lint --prefix apps/web\""
-	},
-	"devDependencies": {
-		"concurrently": "^9.1.2"
-	},
-	"workspaces": [
-		"apps/*"
-	]
+  "name": "api",
+  "type": "module",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "node src/main.js",
+    "start": "node src/main.js",
+    "lint": "eslint . --quiet"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^5.0.1",
+    "helmet": "^8.0.0",
+    "morgan": "^1.10.0",
+    "pocketbase": "^0.26.8"
+  },
+  "devDependencies": {
+    "@eslint/js": "^8.57.0",
+    "eslint": "^8.57.1",
+    "globals": "^15.14.0"
+  }
 }
