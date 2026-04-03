@@ -1,65 +1,66 @@
-import React from "react";
+// src/pages/ProductsPage.jsx
+
+import { categories } from "../data/categories";
 import { products } from "../data/products";
+import { Link } from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-import { Link } from "react-router-dom";
 
-const ProductsPage = () => {
-
-  const grouped = products.reduce((acc, p) => {
-    const cat = p.category || "Others";
-    if (!acc[cat]) acc[cat] = [];
-    acc[cat].push(p);
-    return acc;
-  }, {});
-
-  const categories = Object.keys(grouped);
-
+export default function ProductsPage() {
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
 
       <main className="flex-1 p-6">
-        <h1 className="text-3xl font-bold mb-8 text-center">
+        <h1 className="text-3xl font-bold text-center mb-10">
           Our Categories
         </h1>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {categories.map((cat) => (
-            
-            /* ✅ FIXED: use Link */
-            <Link
-              key={cat}
-              to={`/products/${cat}`}
-              className="bg-white rounded-xl shadow hover:shadow-xl transition cursor-pointer overflow-hidden block"
-            >
-              {/* IMAGE */}
-              <img
-                src={grouped[cat][0]?.image || "https://via.placeholder.com/300"}
-                className="h-48 w-full object-cover"
-              />
+          {categories.map((cat) => {
+            const count = products.filter(
+              (p) => p.category === cat.name
+            ).length;
 
-              {/* TEXT */}
-              <div className="p-4">
-                <h2 className="text-lg font-semibold">{cat}</h2>
+            return (
+              <div
+                key={cat.name}
+                className="border rounded-xl overflow-hidden shadow hover:shadow-lg transition"
+              >
+                {/* ✅ CATEGORY IMAGE */}
+                <img
+                  src={cat.image}
+                  alt={cat.name}
+                  className="w-full h-48 object-cover"
+                />
 
-                <p className="text-sm text-gray-500 mt-1">
-                  {grouped[cat].length} products available
-                </p>
+                <div className="p-4">
+                  <h2 className="text-lg font-semibold">
+                    {cat.name}
+                  </h2>
 
-                <p className="text-blue-600 mt-3">
-                  View Products →
-                </p>
+                  <p className="text-sm text-gray-600">
+                    {cat.description}
+                  </p>
+
+                  <p className="text-sm mt-2">
+                    {count} products available
+                  </p>
+
+                  <Link
+                    to={`/category/${encodeURIComponent(cat.name)}`}
+                    className="text-blue-600 mt-2 inline-block"
+                  >
+                    View Products →
+                  </Link>
+                </div>
               </div>
-            </Link>
-
-          ))}
+            );
+          })}
         </div>
       </main>
 
       <Footer />
     </div>
   );
-};
-
-export default ProductsPage;
+}

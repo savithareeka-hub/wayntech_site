@@ -21,8 +21,8 @@ export default function Cart() {
 
   const totalItems = cart.reduce((acc, item) => acc + item.qty, 0);
 
-  // ✅ WhatsApp Checkout
-  const handleCheckout = () => {
+  // ✅ SMART CHECKOUT (AUTO DETECT)
+  const handleCheckout = async () => {
     if (!customer.name || !customer.phone || !customer.address) {
       alert("Please fill all details");
       return;
@@ -52,9 +52,66 @@ export default function Cart() {
 
     message += `💰 Total: ₹${subtotal}`;
 
-    const url = `https://wa.me/919074600471?text=${encodeURIComponent(message)}`;
+    const encodedMessage = encodeURIComponent(message);
 
-    window.open(url, "_blank");
+    // 📱 Detect Mobile
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+    // 💻 Detect Email support (basic)
+    const canUseEmail =
+      navigator.userAgent.includes("Chrome") ||
+      navigator.userAgent.includes("Firefox");
+
+    // ✅ 1. MOBILE → WhatsApp
+    if (isMobile) {
+      window.open(
+        `https://wa.me/${phone}?text=${encodedMessage}`,
+        "_blank"
+      );
+
+      clearCart();
+      return;
+    }
+
+    // ✅ 2. DESKTOP → Email
+    if (canUseEmail) {
+      window.location.href = `mailto:wayntechmndy@gmail.com?subject=New Order&body=${encodedMessage}`;
+
+      clearCart();
+      return;
+    }
+
+    // ✅ 3. FALLBACK → Save to Admin
+    try {
+      const res = await fetch("/api/orders", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          customer,
+          cart,
+          total: subtotal,
+          createdAt: new Date(),
+        }),
+      });
+
+      if (res.ok) {
+        alert("Order placed successfully!");
+        clearCart();
+      } else {
+        alert("Something went wrong!");
+      }
+    } catch (error) {
+      console.error(error);
+      alert("Server error!");
+    }
+  };
+
+  // ✅ CLEAR CART FUNCTION
+  const clearCart = () => {
+    localStorage.removeItem("cart");
+    window.location.reload();
   };
 
   return (
@@ -108,7 +165,6 @@ export default function Cart() {
                         ₹{item.price} each
                       </p>
 
-                      {/* QTY CONTROLS */}
                       <div className="flex items-center border rounded-lg w-fit mt-2">
                         <button
                           onClick={() =>
@@ -212,12 +268,12 @@ export default function Cart() {
                 />
               </div>
 
-              {/* WHATSAPP BUTTON */}
+              {/* ✅ SINGLE SMART BUTTON */}
               <button
                 onClick={handleCheckout}
                 className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded mt-4 w-full text-lg font-semibold"
               >
-                📲 Order via WhatsApp
+                🚀 Checkout
               </button>
 
               <Link
