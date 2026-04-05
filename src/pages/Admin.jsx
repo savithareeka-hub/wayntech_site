@@ -14,7 +14,7 @@ export default function Admin() {
     }
 
     // ✅ Fetch with token
-   fetch("http://localhost:5000/api/orders", {
+   fetch("ttps://wayntech-site.onrender.com/api/orders", {
   headers: {
     Authorization: token,
   },

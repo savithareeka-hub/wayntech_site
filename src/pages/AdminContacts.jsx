@@ -5,7 +5,7 @@ const AdminContacts = () => {
 
   const fetchMessages = async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/contact", {
+      const res = await fetch("https://wayntech-site.onrender.com/api/contact", {
         headers: {
           Authorization: "admin-token-123",
         },
@@ -23,7 +23,7 @@ const AdminContacts = () => {
     if (!window.confirm("Delete this message?")) return;
 
     try {
-      await fetch(`http://localhost:5000/api/contact/${id}`, {
+      await fetch(`https://wayntech-site.onrender.com/api/contact/${id}`, {
         method: "DELETE",
         headers: {
           Authorization: "admin-token-123",
