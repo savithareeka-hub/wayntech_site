@@ -5,10 +5,9 @@ import { useCart } from "../context/CartContext";
 import { useNavigate } from "react-router-dom";
 
 export default function Checkout() {
-  const { cart, clearCart } = useCart(); // ✅ FIXED
+  const { cart, clearCart } = useCart();
   const navigate = useNavigate();
 
-  // ✅ Form State
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -18,18 +17,15 @@ export default function Checkout() {
 
   const [loading, setLoading] = useState(false);
 
-  // ✅ Handle Input Change
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  // ✅ Calculate Total
   const total = cart.reduce(
     (acc, item) => acc + Number(item.price) * Number(item.qty),
     0
   );
 
-  // ✅ Submit Order (UPDATED WITH WHATSAPP FIX)
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -41,7 +37,7 @@ export default function Checkout() {
     try {
       setLoading(true);
 
-      // ✅ Save to backend
+      // ✅ Save order first
       const res = await fetch("https://wayntech-site.onrender.com/api/orders", {
         method: "POST",
         headers: {
@@ -63,8 +59,14 @@ export default function Checkout() {
         throw new Error(data.message || "Order failed");
       }
 
-      // ✅ Build WhatsApp message
-      const message = `
+      // ✅ Detect Mobile ONLY
+      const isMobile = /Android|iPhone|iPad|iPod/i.test(
+        navigator.userAgent
+      );
+
+      if (isMobile) {
+        // ✅ Build WhatsApp message
+        const message = `
 🛒 *New Order - WaynTech Cards*
 
 👤 Name: ${form.name}
@@ -83,20 +85,20 @@ ${cart
 Total Amount: ₹${total}
 `;
 
-      const encodedMessage = encodeURIComponent(message);
-      const phoneNumber = "919074600471";
+        const encodedMessage = encodeURIComponent(message);
+        const phoneNumber = "919074600471";
 
-      // ✅ WhatsApp URL (WORKS EVERYWHERE)
-      const whatsappURL = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
+        const whatsappURL = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
 
-      // 🔥 IMPORTANT: Use redirect (NOT window.open)
-      window.location.href = whatsappURL;
+        // 📱 Open WhatsApp ONLY on mobile
+        window.location.href = whatsappURL;
+      } else {
+        // 💻 PC → just success message
+        alert("✅ Order placed successfully!");
+        navigate("/"); // or /success page
+      }
 
-      // ✅ Clear cart
       clearCart();
-
-      // ❌ DO NOT navigate here (breaks WhatsApp)
-      // navigate("/");
 
     } catch (error) {
       console.error("Checkout Error:", error);
@@ -112,7 +114,6 @@ Total Amount: ₹${total}
 
       <main className="flex-1 max-w-7xl mx-auto p-6 w-full">
 
-        {/* Back Button */}
         <button
           onClick={() => navigate("/cart")}
           className="mb-4 text-gray-600"
@@ -124,7 +125,7 @@ Total Amount: ₹${total}
 
         <div className="grid md:grid-cols-3 gap-6">
 
-          {/* LEFT - FORM */}
+          {/* FORM */}
           <div className="md:col-span-2 bg-white p-6 rounded-xl shadow">
 
             <h2 className="text-xl font-semibold mb-4">
@@ -172,14 +173,14 @@ Total Amount: ₹${total}
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-lg font-medium"
+                className="w-full bg-blue-500 text-white py-3 rounded-lg"
               >
-                {loading ? "Placing Order..." : "Place Order"}
+                {loading ? "Processing..." : "Place Order"}
               </button>
             </form>
           </div>
 
-          {/* RIGHT - SUMMARY */}
+          {/* SUMMARY */}
           <div className="bg-white p-6 rounded-xl shadow h-fit">
 
             <h2 className="text-lg font-semibold mb-4">
@@ -187,10 +188,7 @@ Total Amount: ₹${total}
             </h2>
 
             {cart.map((item) => (
-              <div
-                key={item.id}
-                className="flex justify-between text-sm mb-2"
-              >
+              <div key={item.id} className="flex justify-between mb-2">
                 <span>{item.name} x{item.qty}</span>
                 <span>₹{item.price * item.qty}</span>
               </div>
@@ -198,11 +196,9 @@ Total Amount: ₹${total}
 
             <hr className="my-3" />
 
-            <div className="flex justify-between font-semibold text-lg">
+            <div className="flex justify-between font-bold">
               <span>Total</span>
-              <span className="text-blue-600">
-                ₹{total.toFixed(2)}
-              </span>
+              <span>₹{total}</span>
             </div>
           </div>
 
