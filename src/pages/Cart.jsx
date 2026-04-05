@@ -21,72 +21,9 @@ export default function Cart() {
     0
   );
 
-  // ✅ Checkout function (UPDATED)
-  const handleCheckout = async () => {
-    try {
-      const orderData = {
-        items: cart,
-        total: subtotal,
-        totalItems,
-        createdAt: new Date(),
-      };
-
-      // 🔴 CHANGE THIS to your real backend URL
-      const res = await fetch("https://your-backend-url/api/orders", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(orderData),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) throw new Error(data.message || "Order failed");
-
-      // ✅ Create WhatsApp message
-      const message = `
-🛒 *New Order - WaynTech Cards*
-
-${cart
-  .map(
-    (item) =>
-      `• ${item.name} (x${item.qty}) = ₹${item.price * item.qty}`
-  )
-  .join("\n")}
-
-------------------------
-Total Items: ${totalItems}
-Total Amount: ₹${subtotal}
-`;
-
-      const encodedMessage = encodeURIComponent(message);
-
-      const phoneNumber = "919074600471";
-
-      // ✅ Detect Mobile
-      const isMobile = /Android|iPhone|iPad|iPod/i.test(
-        navigator.userAgent
-      );
-
-      if (isMobile) {
-        // 📱 WhatsApp App
-        window.location.href = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
-      } else {
-        // 💻 WhatsApp Web
-        window.open(
-          `https://web.whatsapp.com/send?phone=${phoneNumber}&text=${encodedMessage}`,
-          "_blank"
-        );
-      }
-
-      // ✅ Optional success page
-      navigate("/success");
-
-    } catch (error) {
-      console.error("Checkout Error:", error);
-      alert("Order failed. Try again.");
-    }
+  // ✅ Checkout
+  const handleCheckout = () => {
+    navigate("/checkout");
   };
 
   return (
@@ -131,7 +68,7 @@ Total Amount: ₹${subtotal}
                           onClick={() =>
                             addToCart({ ...item, qty: -1 })
                           }
-                          className="px-2 border rounded"
+                          className="px-2 border"
                         >
                           -
                         </button>
@@ -142,7 +79,7 @@ Total Amount: ₹${subtotal}
                           onClick={() =>
                             addToCart({ ...item, qty: 1 })
                           }
-                          className="px-2 border rounded"
+                          className="px-2 border"
                         >
                           +
                         </button>
@@ -150,7 +87,7 @@ Total Amount: ₹${subtotal}
                     </div>
                   </div>
 
-                  {/* RIGHT SIDE */}
+                  {/* Right Side Price */}
                   <div className="text-right">
                     <p className="font-bold text-blue-600">
                       ₹{Number(item.price) * Number(item.qty)}
