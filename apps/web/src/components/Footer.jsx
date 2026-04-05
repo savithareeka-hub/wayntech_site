@@ -70,7 +70,7 @@ const Footer = () => {
                 <Facebook className="h-6 w-6 hover:scale-110 transition" />
               </a>
 
-              <a href="https://www.instagram.com/wayn.tec" target="_blank" rel="noopener noreferrer">
+              <a href="https://www.instagram.com/wayn.tech/" target="_blank" rel="noopener noreferrer">
                 <Instagram className="h-6 w-6 hover:scale-110 transition" />
               </a>
 
@@ -80,7 +80,7 @@ const Footer = () => {
             </div>
           </div>
 
-          {/* MAP SECTION */}
+          {/* MAP */}
           <div>
             <span className="text-lg font-semibold text-foreground">Location</span>
 
@@ -90,14 +90,9 @@ const Footer = () => {
                 width="100%"
                 height="100%"
                 style={{ border: 0 }}
-                allowFullScreen
                 loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
               ></iframe>
             </div>
-
-            {/* OPTIONAL BUTTON */}
-            
           </div>
 
         </div>
@@ -111,6 +106,7 @@ const Footer = () => {
             </p>
 
             <div className="flex space-x-6 text-sm">
+
               <Link to="/privacy" className="hover:text-foreground">
                 Privacy Policy
               </Link>
@@ -118,6 +114,15 @@ const Footer = () => {
               <Link to="/terms" className="hover:text-foreground">
                 Terms of Service
               </Link>
+
+              {/* ✅ ADMIN LOGIN ADDED HERE */}
+              <Link
+                to="/admin-login"
+                className="hover:text-foreground text-muted-foreground"
+              >
+                Admin Login
+              </Link>
+
             </div>
 
           </div>
