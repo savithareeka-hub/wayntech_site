@@ -1,12 +1,9 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
-const PDFDocument = require("pdfkit");
-const fs = require("fs");
-const path = require("path");
 require("dotenv").config();
 
-// ✅ IMPORT MODELS (ONLY ONCE)
+// ✅ IMPORT MODELS
 const Order = require("./models/Order");
 const Contact = require("./models/Contact");
 
@@ -18,46 +15,22 @@ const app = express();
 app.use(cors({
   origin: "*"
 }));
+
 app.use(express.json());
 
 // ==============================
-// ✅ MongoDB connection
+// ✅ HEALTH CHECK (IMPORTANT for Railway)
+// ==============================
+app.get("/", (req, res) => {
+  res.send("API Running 🚀");
+});
+
+// ==============================
+// ✅ MongoDB Connection
 // ==============================
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("✅ MongoDB Connected"))
   .catch(err => console.error("❌ MongoDB Error:", err));
-
-// ==============================
-// 📄 GENERATE INVOICE
-// ==============================
-const generateInvoice = (order) => {
-  const dir = "invoices";
-
-  if (!fs.existsSync(dir)) fs.mkdirSync(dir);
-
-  const filePath = path.join(dir, `invoice-${order._id}.pdf`);
-
-  const doc = new PDFDocument();
-  doc.pipe(fs.createWriteStream(filePath));
-
-  doc.fontSize(20).text("WaynTech Invoice", { align: "center" });
-
-  doc.text(`\nCustomer: ${order.customerName}`);
-  doc.text(`Phone: ${order.phone}`);
-  doc.text(`Email: ${order.email}`);
-  doc.text(`Address: ${order.address}`);
-
-  doc.text("\nItems:");
-  order.items.forEach((item, i) => {
-    doc.text(`${i + 1}. ${item.name} - ₹${item.price} x ${item.qty}`);
-  });
-
-  doc.text(`\nTotal: ₹${order.totalAmount}`);
-
-  doc.end();
-
-  return filePath;
-};
 
 // ==============================
 // 🔐 ADMIN LOGIN
@@ -147,8 +120,6 @@ app.post("/api/orders", async (req, res) => {
     const order = new Order(req.body);
     await order.save();
 
-    generateInvoice(order);
-
     res.json({
       success: true,
       message: "Order saved successfully",
@@ -174,7 +145,7 @@ app.get("/api/orders", checkAuth, async (req, res) => {
 });
 
 // ==============================
-// ✏️ UPDATE ORDER
+// ✏️ UPDATE ORDER STATUS
 // ==============================
 app.put("/api/orders/:id", checkAuth, async (req, res) => {
   try {
@@ -205,23 +176,21 @@ app.delete("/api/orders/:id", checkAuth, async (req, res) => {
 });
 
 // ==============================
-// 📥 DOWNLOAD INVOICE
-// ==============================
-app.get("/api/orders/:id/invoice", checkAuth, (req, res) => {
-  const filePath = path.join("invoices", `invoice-${req.params.id}.pdf`);
-
-  if (fs.existsSync(filePath)) {
-    res.download(filePath);
-  } else {
-    res.status(404).json({ message: "Invoice not found" });
-  }
-});
-
-// ==============================
 // 🚀 START SERVER
 // ==============================
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
+});
+
+// ==============================
+// ❗ GLOBAL ERROR HANDLING (SAFE)
+// ==============================
+process.on("uncaughtException", err => {
+  console.error("Uncaught Exception:", err);
+});
+
+process.on("unhandledRejection", err => {
+  console.error("Unhandled Rejection:", err);
 });
