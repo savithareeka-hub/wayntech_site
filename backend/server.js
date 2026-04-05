@@ -4,6 +4,8 @@ const cors = require("cors");
 const PDFDocument = require("pdfkit");
 const fs = require("fs");
 const path = require("path");
+const Order = require(path.join(__dirname, "models", "Order"));
+const Contact = require(path.join(__dirname, "models", "Contact"));
 
 const app = express();
 
