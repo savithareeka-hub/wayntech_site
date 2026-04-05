@@ -18,7 +18,7 @@ export default function ProductCard({ product }) {
 
   // ➖ DECREASE (NOT BELOW MIN)
   const decrease = () => {
-    if (qty > minQty) setQty(qty - 1);
+    if (qty > minQty) setQty((prev) => prev - 1);
   };
 
   // 🛒 ADD TO CART
@@ -32,7 +32,7 @@ export default function ProductCard({ product }) {
   };
 
   return (
-    <div className="bg-white rounded-xl shadow p-4">
+    <div className="bg-white rounded-xl shadow p-4 flex flex-col justify-between">
 
       {/* IMAGE */}
       <img
@@ -51,7 +51,7 @@ export default function ProductCard({ product }) {
       </h3>
 
       {/* DESCRIPTION */}
-      <p className="text-sm text-gray-500 mt-1">
+      <p className="text-sm text-gray-500 mt-1 line-clamp-2">
         {product.description || "Custom printed product"}
       </p>
 
@@ -68,25 +68,37 @@ export default function ProductCard({ product }) {
         ₹{product.price}
       </p>
 
-      {/* 🔥 MIN QTY DISPLAY */}
+      {/* MIN QTY */}
       <p className="text-xs text-red-500 mt-1">
         Minimum Order: {minQty} Pcs
       </p>
 
-      {/* QTY + ADD */}
-      <div className="flex items-center gap-3 mt-4">
+      {/* ✅ FIXED QTY + CART SECTION */}
+      <div className="flex flex-col gap-2 mt-4 sm:flex-row sm:items-center sm:justify-between">
 
         {/* QTY CONTROL */}
-        <div className="flex items-center border rounded-lg px-2 py-1">
-          <button onClick={decrease} className="px-2 text-lg">-</button>
-          <span className="px-2">{qty}</span>
-          <button onClick={increase} className="px-2 text-lg">+</button>
+        <div className="flex items-center justify-between border rounded-lg px-2 py-1 w-full sm:w-auto">
+          <button
+            onClick={decrease}
+            className="px-2 text-lg font-semibold"
+          >
+            -
+          </button>
+
+          <span className="px-3 font-medium">{qty}</span>
+
+          <button
+            onClick={increase}
+            className="px-2 text-lg font-semibold"
+          >
+            +
+          </button>
         </div>
 
         {/* ADD TO CART */}
         <button
           onClick={handleAdd}
-          className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm"
+          className="flex items-center justify-center gap-2 bg-blue-600 text-white px-4 py-2 sm:py-2.5 rounded-lg hover:bg-blue-700 text-sm sm:text-base w-full sm:w-auto whitespace-nowrap transition active:scale-95"
         >
           <ShoppingCart size={16} />
           Add to Cart
