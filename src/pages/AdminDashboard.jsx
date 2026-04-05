@@ -71,25 +71,33 @@ export default function AdminDashboard() {
   };
 
   // ==============================
-  // ❌ DELETE ORDER
-  // ==============================
-  const deleteOrder = async (id) => {
-    await fetch(`/api/orders/${id}`, {
+// ❌ DELETE ORDER
+const deleteOrder = async (id) => {
+  try {
+    await fetch(`https://wayntech-site.onrender.com/api/orders/${id}`, {
       method: "DELETE",
       headers: { Authorization: "admin-token-123" },
     });
 
     fetchOrders();
-  };
+  } catch (err) {
+    console.error("Delete order error:", err);
+  }
+};
 
-  // ==============================
-  // ❌ DELETE MESSAGE
-  // ==============================
-  const deleteMessage = async (id) => {
-    await fetch(`/api/contact/${id}`, {
+// ❌ DELETE MESSAGE
+const deleteMessage = async (id) => {
+  try {
+    await fetch(`https://wayntech-site.onrender.com/api/contact/${id}`, {
       method: "DELETE",
       headers: { Authorization: "admin-token-123" },
     });
+
+    fetchMessages();
+  } catch (err) {
+    console.error("Delete message error:", err);
+  }
+};
 
     fetchMessages();
   };
