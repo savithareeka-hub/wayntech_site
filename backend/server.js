@@ -4,34 +4,28 @@ const cors = require("cors");
 const PDFDocument = require("pdfkit");
 const fs = require("fs");
 const path = require("path");
-const Order = require(path.join(__dirname, "models", "Order.js"));
-const Contact = require(path.join(__dirname, "models", "Contact.js"));
+require("dotenv").config();
+
+// ✅ IMPORT MODELS (ONLY ONCE)
+const Order = require("./models/Order");
+const Contact = require("./models/Contact");
 
 const app = express();
 
 // ==============================
 // ✅ Middleware
 // ==============================
-app.use(cors());
+app.use(cors({
+  origin: "*"
+}));
 app.use(express.json());
 
 // ==============================
 // ✅ MongoDB connection
 // ==============================
-require("dotenv").config();
-
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("✅ MongoDB Connected"))
   .catch(err => console.error("❌ MongoDB Error:", err));
-  
-
-// ==============================
-// ✅ Models
-// ==============================
-const Order = require("./models/Order");
-
-// 👉 ADD THIS MODEL
-const Contact = require("./models/Contact");
 
 // ==============================
 // 📄 GENERATE INVOICE
@@ -95,24 +89,17 @@ const checkAuth = (req, res, next) => {
 };
 
 // ==============================
-// 📩 CONTACT FORM (NEW)
+// 📩 CONTACT FORM
 // ==============================
 app.post("/api/contact", async (req, res) => {
   try {
-    console.log("📩 CONTACT:", req.body);
-
     const { name, email, message } = req.body;
 
     if (!name || !message) {
       return res.status(400).json({ error: "Name & message required" });
     }
 
-    const newMessage = new Contact({
-      name,
-      email,
-      message,
-    });
-
+    const newMessage = new Contact({ name, email, message });
     await newMessage.save();
 
     res.json({
@@ -127,7 +114,7 @@ app.post("/api/contact", async (req, res) => {
 });
 
 // ==============================
-// 📩 GET CONTACT MESSAGES (ADMIN)
+// 📩 GET CONTACT (ADMIN)
 // ==============================
 app.get("/api/contact", checkAuth, async (req, res) => {
   try {
@@ -140,7 +127,7 @@ app.get("/api/contact", checkAuth, async (req, res) => {
 });
 
 // ==============================
-// ❌ DELETE CONTACT MESSAGE
+// ❌ DELETE CONTACT
 // ==============================
 app.delete("/api/contact/:id", checkAuth, async (req, res) => {
   try {
@@ -153,12 +140,10 @@ app.delete("/api/contact/:id", checkAuth, async (req, res) => {
 });
 
 // ==============================
-// 📦 CREATE ORDER (PUBLIC)
+// 📦 CREATE ORDER
 // ==============================
 app.post("/api/orders", async (req, res) => {
   try {
-    console.log("📥 ORDER RECEIVED:", req.body);
-
     const order = new Order(req.body);
     await order.save();
 
@@ -176,7 +161,7 @@ app.post("/api/orders", async (req, res) => {
 });
 
 // ==============================
-// 📦 GET ORDERS (PROTECTED)
+// 📦 GET ORDERS (ADMIN)
 // ==============================
 app.get("/api/orders", checkAuth, async (req, res) => {
   try {
@@ -189,7 +174,7 @@ app.get("/api/orders", checkAuth, async (req, res) => {
 });
 
 // ==============================
-// ✏️ UPDATE STATUS
+// ✏️ UPDATE ORDER
 // ==============================
 app.put("/api/orders/:id", checkAuth, async (req, res) => {
   try {
@@ -235,8 +220,8 @@ app.get("/api/orders/:id/invoice", checkAuth, (req, res) => {
 // ==============================
 // 🚀 START SERVER
 // ==============================
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
+  console.log(`🚀 Server running on port ${PORT}`);
 });
