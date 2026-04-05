@@ -8,15 +8,18 @@ import Footer from "../components/Footer";
 
 export default function ProductsPage() {
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-gray-50">
       <Header />
 
-      <main className="flex-1 p-6">
-        <h1 className="text-3xl font-bold text-center mb-10">
+      <main className="flex-1 px-4 py-6 sm:px-6 lg:px-10">
+        
+        {/* Title */}
+        <h1 className="text-2xl sm:text-3xl font-bold text-center mb-8">
           Our Categories
         </h1>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {categories.map((cat) => {
             const count = products.filter(
               (p) => p.category === cat.name
@@ -25,39 +28,46 @@ export default function ProductsPage() {
             return (
               <div
                 key={cat.name}
-                className="border rounded-xl overflow-hidden shadow hover:shadow-lg transition"
+                className="bg-white border rounded-xl overflow-hidden shadow-sm hover:shadow-md transition duration-300"
               >
-                {/* ✅ CATEGORY IMAGE */}
+                
+                {/* Image */}
                 <img
                   src={cat.image}
                   alt={cat.name}
-                  className="w-full h-48 object-cover"
+                  className="w-full h-40 sm:h-48 object-cover"
                 />
 
-                <div className="p-4">
-                  <h2 className="text-lg font-semibold">
-                    {cat.name}
-                  </h2>
+                {/* Content */}
+                <div className="p-4 flex flex-col justify-between h-full">
+                  
+                  <div>
+                    <h2 className="text-base sm:text-lg font-semibold">
+                      {cat.name}
+                    </h2>
 
-                  <p className="text-sm text-gray-600">
-                    {cat.description}
-                  </p>
+                    <p className="text-sm text-gray-600 mt-1 line-clamp-2">
+                      {cat.description}
+                    </p>
 
-                  <p className="text-sm mt-2">
-                    {count} products available
-                  </p>
+                    <p className="text-xs text-gray-500 mt-2">
+                      {count} products available
+                    </p>
+                  </div>
 
+                  {/* Button */}
                   <Link
                     to={`/category/${encodeURIComponent(cat.name)}`}
-                    className="text-blue-600 mt-2 inline-block"
+                    className="mt-4 inline-block text-center bg-blue-600 text-white py-2 rounded-md text-sm sm:text-base hover:bg-blue-700 transition"
                   >
-                    View Products →
+                    View Products
                   </Link>
                 </div>
               </div>
             );
           })}
         </div>
+
       </main>
 
       <Footer />
