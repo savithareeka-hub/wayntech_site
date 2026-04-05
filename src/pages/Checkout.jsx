@@ -37,7 +37,7 @@ export default function Checkout() {
     try {
       setLoading(true);
 
-      // ✅ Save order
+      // ✅ Save order to backend
       const res = await fetch("https://wayntech-site.onrender.com/api/orders", {
         method: "POST",
         headers: {
@@ -59,7 +59,7 @@ export default function Checkout() {
         throw new Error(data.message || "Order failed");
       }
 
-      // ✅ STRONG MOBILE DETECTION (FIXED)
+      // ✅ Detect Mobile (strong detection)
       const isMobile =
         /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) &&
         (navigator.maxTouchPoints > 1 || window.innerWidth <= 768);
@@ -87,14 +87,22 @@ Total Amount: ₹${total}
 
         const encodedMessage = encodeURIComponent(message);
         const phoneNumber = "919074600471";
+        const whatsappURL = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
 
-        window.location.href = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
+        // ✅ Open WhatsApp without blocking page
+        window.open(whatsappURL, "_blank");
+
+        // ✅ Redirect to home after short delay
+        setTimeout(() => {
+          navigate("/");
+        }, 800);
       } else {
-        // 💻 PC → No WhatsApp
+        // 💻 Desktop → no WhatsApp
         alert("✅ Order placed successfully!");
         navigate("/");
       }
 
+      // ✅ Clear cart
       clearCart();
 
     } catch (error) {
