@@ -5,9 +5,7 @@ const contactSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  email: {
-    type: String,
-  },
+  email: String,
   message: {
     type: String,
     required: true,
@@ -16,4 +14,4 @@ const contactSchema = new mongoose.Schema({
 
 const Contact = mongoose.model("Contact", contactSchema);
 
-export default Contact; // ✅ FIX
+export default Contact;

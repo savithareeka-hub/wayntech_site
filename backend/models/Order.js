@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 const orderSchema = new mongoose.Schema({
   customerName: {
@@ -26,7 +26,7 @@ const orderSchema = new mongoose.Schema({
       name: String,
       qty: Number,
       price: Number,
-      image: String, // optional (for future UI)
+      image: String,
     },
   ],
 
@@ -37,13 +37,11 @@ const orderSchema = new mongoose.Schema({
 
   status: {
     type: String,
-    default: "Pending", // Pending | Completed
+    default: "Pending",
   },
 
-  createdAt: {
-    type: Date,
-    default: Date.now,
-  },
-});
+}, { timestamps: true });
 
-module.exports = mongoose.model("Order", orderSchema);
+const Order = mongoose.model("Order", orderSchema);
+
+export default Order;
