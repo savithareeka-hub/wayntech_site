@@ -5,8 +5,10 @@ import { useCart } from "../context/CartContext";
 import { useNavigate } from "react-router-dom";
 
 export default function Checkout() {
-  const { cart, clearCart } = useCart(); // ✅ FIXED
+  const { cart, clearCart };
   const navigate = useNavigate();
+
+  const { cart: cartData, clearCart: clear } = useCart();
 
   // ✅ Form State
   const [form, setForm] = useState({
@@ -16,20 +18,20 @@ export default function Checkout() {
     address: "",
   });
 
-  const [loading, setLoading] = useState(false); // ✅ NEW
+  const [loading, setLoading] = useState(false);
 
-  // ✅ Handle Input Change
+  // ✅ Handle Input
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
   // ✅ Calculate Total
-  const total = cart.reduce(
+  const total = cartData.reduce(
     (acc, item) => acc + Number(item.price) * Number(item.qty),
     0
   );
 
-  // ✅ Submit Order
+  // ✅ SUBMIT ORDER (UPDATED WITH WHATSAPP)
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -46,13 +48,12 @@ export default function Checkout() {
         headers: {
           "Content-Type": "application/json",
         },
-
         body: JSON.stringify({
           customerName: form.name,
           phone: form.phone,
           email: form.email,
           address: form.address,
-          items: cart,
+          items: cartData,
           totalAmount: total,
         }),
       });
@@ -63,12 +64,49 @@ export default function Checkout() {
         throw new Error(data.message || "Order failed");
       }
 
+      // ✅ WhatsApp message
+      const message = `
+🛒 *New Order - WaynTech Cards*
+
+👤 Name: ${form.name}
+📞 Phone: ${form.phone}
+📧 Email: ${form.email}
+📍 Address: ${form.address}
+
+${cartData
+  .map(
+    (item) =>
+      `• ${item.name} (x${item.qty}) = ₹${item.price * item.qty}`
+  )
+  .join("\n")}
+
+------------------------
+Total Amount: ₹${total}
+`;
+
+      const encodedMessage = encodeURIComponent(message);
+      const phoneNumber = "919074600471";
+
+      // ✅ Detect Mobile
+      const isMobile = /Android|iPhone|iPad|iPod/i.test(
+        navigator.userAgent
+      );
+
+      if (isMobile) {
+        window.location.href = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
+      } else {
+        window.open(
+          `https://web.whatsapp.com/send?phone=${phoneNumber}&text=${encodedMessage}`,
+          "_blank"
+        );
+      }
+
       // ✅ SUCCESS
       alert("✅ Order placed successfully!");
 
-      clearCart(); // 🔥 IMPORTANT FIX
+      clear(); // clear cart
 
-      navigate("/"); // redirect
+      navigate("/");
 
     } catch (error) {
       console.error("Checkout Error:", error);
@@ -84,7 +122,6 @@ export default function Checkout() {
 
       <main className="flex-1 max-w-7xl mx-auto p-6 w-full">
 
-        {/* Back Button */}
         <button
           onClick={() => navigate("/cart")}
           className="mb-4 text-gray-600"
@@ -96,7 +133,7 @@ export default function Checkout() {
 
         <div className="grid md:grid-cols-3 gap-6">
 
-          {/* LEFT - FORM */}
+          {/* LEFT */}
           <div className="md:col-span-2 bg-white p-6 rounded-xl shadow">
 
             <h2 className="text-xl font-semibold mb-4">
@@ -105,83 +142,63 @@ export default function Checkout() {
 
             <form onSubmit={handleSubmit} className="space-y-4">
 
-              <div>
-                <label className="block mb-1">Full Name *</label>
-                <input
-                  type="text"
-                  name="name"
-                  value={form.name}
-                  onChange={handleChange}
-                  className="w-full border rounded p-3"
-                  placeholder="Enter your full name"
-                />
-              </div>
+              <input
+                type="text"
+                name="name"
+                value={form.name}
+                onChange={handleChange}
+                className="w-full border rounded p-3"
+                placeholder="Full Name *"
+              />
 
-              <div>
-                <label className="block mb-1">Email</label>
-                <input
-                  type="email"
-                  name="email"
-                  value={form.email}
-                  onChange={handleChange}
-                  className="w-full border rounded p-3"
-                  placeholder="your@email.com"
-                />
-              </div>
+              <input
+                type="email"
+                name="email"
+                value={form.email}
+                onChange={handleChange}
+                className="w-full border rounded p-3"
+                placeholder="Email"
+              />
 
-              <div>
-                <label className="block mb-1">Phone Number *</label>
-                <input
-                  type="text"
-                  name="phone"
-                  value={form.phone}
-                  onChange={handleChange}
-                  className="w-full border rounded p-3"
-                  placeholder="+91 98765 43210"
-                />
-              </div>
+              <input
+                type="text"
+                name="phone"
+                value={form.phone}
+                onChange={handleChange}
+                className="w-full border rounded p-3"
+                placeholder="Phone *"
+              />
 
-              <div>
-                <label className="block mb-1">Delivery Address *</label>
-                <textarea
-                  name="address"
-                  value={form.address}
-                  onChange={handleChange}
-                  className="w-full border rounded p-3"
-                  rows={4}
-                  placeholder="Enter full delivery address"
-                />
-              </div>
+              <textarea
+                name="address"
+                value={form.address}
+                onChange={handleChange}
+                className="w-full border rounded p-3"
+                rows={4}
+                placeholder="Address *"
+              />
 
-              {/* BUTTON */}
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-lg font-medium"
+                className="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-lg"
               >
                 {loading ? "Placing Order..." : "Place Order"}
               </button>
             </form>
           </div>
 
-          {/* RIGHT - SUMMARY */}
+          {/* RIGHT */}
           <div className="bg-white p-6 rounded-xl shadow h-fit">
 
             <h2 className="text-lg font-semibold mb-4">
               Order Summary
             </h2>
 
-            {cart.map((item) => (
-              <div
-                key={item.id}
-                className="flex justify-between text-sm mb-2"
-              >
-                <span>
-                  {item.name} x{item.qty}
-                </span>
-                <span>
-                  ₹{Number(item.price) * Number(item.qty)}
-                </span>
+            {cartData.map((item) => (
+              <div key={item.id} className="flex justify-between mb-2 text-sm">
+                <span>{item.name} x{item.qty}</span>
+                <span>₹{item.price * item.qty}</span>
               </div>
             ))}
 
@@ -189,9 +206,7 @@ export default function Checkout() {
 
             <div className="flex justify-between font-semibold text-lg">
               <span>Total</span>
-              <span className="text-blue-600">
-                ₹{total.toFixed(2)}
-              </span>
+              <span className="text-blue-600">₹{total}</span>
             </div>
           </div>
 
