@@ -1,147 +1,53 @@
 import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
-import dotenv from "dotenv";
 
-// ✅ IMPORT MODELS (IMPORTANT: .js extension required)
 import Order from "./models/Order.js";
 import Contact from "./models/Contact.js";
-
-dotenv.config();
 
 const app = express();
 
 // ==============================
-// ✅ Middleware
+// ⚙️ MIDDLEWARE
 // ==============================
-app.use(cors({
-  origin: "*"
-}));
-
+app.use(cors());
 app.use(express.json());
 
 // ==============================
-// ✅ HEALTH CHECK
-// ==============================
-app.get("/", (req, res) => {
-  res.send("API Running 🚀");
-});
-
-// ==============================
-// ✅ MongoDB Connection
-// ==============================
-mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log("✅ MongoDB Connected"))
-  .catch(err => console.error("❌ MongoDB Error:", err));
-
-// ==============================
-// 🔐 ADMIN LOGIN
-// ==============================
-app.post("/api/admin/login", (req, res) => {
-  const { username, password } = req.body;
-
-  if (username === "admin" && password === "123456") {
-    return res.json({
-      success: true,
-      token: "admin-token-123",
-    });
-  }
-
-  res.status(401).json({ success: false });
-});
-
-// ==============================
-// 🔒 AUTH MIDDLEWARE
+// 🔐 SIMPLE ADMIN AUTH
 // ==============================
 const checkAuth = (req, res, next) => {
   const token = req.headers.authorization;
 
-  if (token === "admin-token-123") {
-    next();
-  } else {
-    res.status(401).json({ message: "Unauthorized" });
+  if (token !== "admin-token-123") {
+    return res.status(401).json({ error: "Unauthorized" });
   }
+
+  next();
 };
-
-// ==============================
-// 📩 CONTACT FORM
-// ==============================
-app.post("/api/contact", async (req, res) => {
-  try {
-    const { name, email, message } = req.body;
-
-    if (!name || !message) {
-      return res.status(400).json({ error: "Name & message required" });
-    }
-
-    const newMessage = new Contact({ name, email, message });
-    await newMessage.save();
-
-    res.json({
-      success: true,
-      message: "Message saved successfully",
-    });
-
-  } catch (err) {
-    console.error("❌ CONTACT ERROR:", err);
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// ==============================
-// 📩 GET CONTACT (ADMIN)
-// ==============================
-app.get("/api/contact", checkAuth, async (req, res) => {
-  try {
-    const messages = await Contact.find().sort({ createdAt: -1 });
-    res.json(messages);
-  } catch (err) {
-    console.error("❌ FETCH CONTACT ERROR:", err);
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// ==============================
-// ❌ DELETE CONTACT
-// ==============================
-app.delete("/api/contact/:id", checkAuth, async (req, res) => {
-  try {
-    await Contact.findByIdAndDelete(req.params.id);
-    res.json({ message: "Message deleted" });
-  } catch (err) {
-    console.error("❌ DELETE CONTACT ERROR:", err);
-    res.status(500).json({ error: err.message });
-  }
-});
 
 // ==============================
 // 📦 CREATE ORDER
 // ==============================
 app.post("/api/orders", async (req, res) => {
   try {
-    const order = new Order(req.body);
-    await order.save();
-
-    res.json({
-      success: true,
-      message: "Order saved successfully",
-    });
-
+    const order = await Order.create(req.body);
+    res.status(201).json(order);
   } catch (err) {
-    console.error("❌ ORDER ERROR:", err);
+    console.error("Create order error:", err);
     res.status(500).json({ error: err.message });
   }
 });
 
 // ==============================
-// 📦 GET ORDERS (ADMIN)
+// 📦 GET ORDERS
 // ==============================
 app.get("/api/orders", checkAuth, async (req, res) => {
   try {
     const orders = await Order.find().sort({ createdAt: -1 });
     res.json(orders);
   } catch (err) {
-    console.error("❌ FETCH ERROR:", err);
+    console.error("Fetch orders error:", err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -151,48 +57,135 @@ app.get("/api/orders", checkAuth, async (req, res) => {
 // ==============================
 app.put("/api/orders/:id", checkAuth, async (req, res) => {
   try {
-    const order = await Order.findByIdAndUpdate(
+    const updated = await Order.findByIdAndUpdate(
       req.params.id,
       { status: req.body.status },
       { new: true }
     );
 
-    res.json(order);
+    if (!updated) {
+      return res.status(404).json({ error: "Order not found" });
+    }
+
+    res.json(updated);
   } catch (err) {
-    console.error("❌ UPDATE ERROR:", err);
+    console.error("Update error:", err);
     res.status(500).json({ error: err.message });
   }
 });
 
 // ==============================
-// ❌ DELETE ORDER
+// ❌ DELETE ORDER (FIXED)
 // ==============================
 app.delete("/api/orders/:id", checkAuth, async (req, res) => {
   try {
-    await Order.findByIdAndDelete(req.params.id);
-    res.json({ message: "Order deleted" });
+    const deleted = await Order.findByIdAndDelete(req.params.id);
+
+    if (!deleted) {
+      return res.status(404).json({
+        success: false,
+        error: "Order not found",
+      });
+    }
+
+    res.json({
+      success: true,
+      message: "Order deleted successfully",
+    });
+
   } catch (err) {
-    console.error("❌ DELETE ERROR:", err);
+    console.error("Delete order error:", err);
+    res.status(500).json({
+      success: false,
+      error: err.message,
+    });
+  }
+});
+
+// ==============================
+// 📩 GET CONTACT MESSAGES
+// ==============================
+app.get("/api/contact", checkAuth, async (req, res) => {
+  try {
+    const messages = await Contact.find().sort({ createdAt: -1 });
+    res.json(messages);
+  } catch (err) {
+    console.error("Fetch messages error:", err);
     res.status(500).json({ error: err.message });
   }
 });
 
 // ==============================
-// 🚀 START SERVER
+// 📩 SAVE CONTACT MESSAGE
 // ==============================
-const PORT = process.env.PORT || 5000;
+app.post("/api/contact", async (req, res) => {
+  try {
+    const { name, email, message } = req.body;
 
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
+    if (!name || !message) {
+      return res.status(400).json({ error: "Name and message required" });
+    }
+
+    const newMessage = await Contact.create({ name, email, message });
+
+    res.status(201).json({
+      success: true,
+      message: "Message saved",
+      data: newMessage,
+    });
+  } catch (err) {
+    console.error("Save message error:", err);
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // ==============================
-// ❗ GLOBAL ERROR HANDLING
+// ❌ DELETE MESSAGE (FIXED)
 // ==============================
-process.on("uncaughtException", err => {
-  console.error("Uncaught Exception:", err);
+app.delete("/api/contact/:id", checkAuth, async (req, res) => {
+  try {
+    const deleted = await Contact.findByIdAndDelete(req.params.id);
+
+    if (!deleted) {
+      return res.status(404).json({
+        success: false,
+        error: "Message not found",
+      });
+    }
+
+    res.json({
+      success: true,
+      message: "Message deleted successfully",
+    });
+
+  } catch (err) {
+    console.error("Delete message error:", err);
+    res.status(500).json({
+      success: false,
+      error: err.message,
+    });
+  }
 });
 
-process.on("unhandledRejection", err => {
-  console.error("Unhandled Rejection:", err);
+// ==============================
+// 🌐 ROOT
+// ==============================
+app.get("/", (req, res) => {
+  res.send("🚀 WaynTech API Running");
 });
+
+// ==============================
+// 🔌 CONNECT DB + START SERVER
+// ==============================
+mongoose
+  .connect(process.env.MONGO_URI)
+  .then(() => {
+    console.log("✅ MongoDB Connected");
+
+    app.listen(5000, () => {
+      console.log("🚀 Server running on port 5000");
+    });
+  })
+  .catch((err) => {
+    console.error("❌ MongoDB Error:", err);
+  });
