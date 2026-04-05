@@ -7,13 +7,13 @@ export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState("orders");
   const [orders, setOrders] = useState([]);
   const [messages, setMessages] = useState([]);
+  const BASE_URL = "https://wayntech-site.onrender.com";
 
   // ==============================
   // 🔐 PROTECT ADMIN PAGE
   // ==============================
   useEffect(() => {
     const token = localStorage.getItem("token");
-
     if (!token) {
       navigate("/admin-login");
     }
@@ -23,22 +23,30 @@ export default function AdminDashboard() {
   // 📦 FETCH ORDERS
   // ==============================
   const fetchOrders = async () => {
-    const res = await fetch("https://wayntech-site.onrender.com/api/orders", {
-      headers: { Authorization: "admin-token-123" },
-    });
-    const data = await res.json();
-    setOrders(data);
+    try {
+      const res = await fetch(`${BASE_URL}/api/orders`, {
+        headers: { Authorization: "admin-token-123" },
+      });
+      const data = await res.json();
+      setOrders(data);
+    } catch (err) {
+      console.error("Fetch orders error:", err);
+    }
   };
 
   // ==============================
   // 📩 FETCH MESSAGES
   // ==============================
   const fetchMessages = async () => {
-    const res = await fetch("https://wayntech-site.onrender.com/api/contact", {
-      headers: { Authorization: "admin-token-123" },
-    });
-    const data = await res.json();
-    setMessages(data);
+    try {
+      const res = await fetch(`${BASE_URL}/api/contact`, {
+        headers: { Authorization: "admin-token-123" },
+      });
+      const data = await res.json();
+      setMessages(data);
+    } catch (err) {
+      console.error("Fetch messages error:", err);
+    }
   };
 
   useEffect(() => {
@@ -55,67 +63,89 @@ export default function AdminDashboard() {
   };
 
   // ==============================
-  // ✏️ UPDATE ORDER STATUS
+  // ✏️ UPDATE STATUS
   // ==============================
   const updateStatus = async (id, status) => {
-    await fetch(`/api/orders/${id}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: "admin-token-123",
-      },
-      body: JSON.stringify({ status }),
-    });
+    try {
+      await fetch(`${BASE_URL}/api/orders/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "admin-token-123",
+        },
+        body: JSON.stringify({ status }),
+      });
 
-    fetchOrders();
+      fetchOrders();
+    } catch (err) {
+      console.error("Update status error:", err);
+    }
   };
 
   // ==============================
-// ❌ DELETE ORDER
-const deleteOrder = async (id) => {
-  try {
-    await fetch(`https://wayntech-site.onrender.com/api/orders/${id}`, {
-      method: "DELETE",
-      headers: { Authorization: "admin-token-123" },
-    });
+  // ❌ DELETE ORDER
+  // ==============================
+  const deleteOrder = async (id) => {
+    if (!window.confirm("Delete this order?")) return;
 
-    fetchOrders();
-  } catch (err) {
-    console.error("Delete order error:", err);
-  }
-};
+    try {
+      const res = await fetch(`${BASE_URL}/api/orders/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: "admin-token-123" },
+      });
 
-// ❌ DELETE MESSAGE
-const deleteMessage = async (id) => {
-  try {
-    await fetch(`https://wayntech-site.onrender.com/api/contact/${id}`, {
-      method: "DELETE",
-      headers: { Authorization: "admin-token-123" },
-    });
+      const data = await res.json();
+      console.log("Delete order:", data);
 
-    fetchMessages();
-  } catch (err) {
-    console.error("Delete message error:", err);
-  }
-};
+      if (!res.ok) {
+        alert("Failed to delete order");
+        return;
+      }
 
-    fetchMessages();
+      fetchOrders();
+    } catch (err) {
+      console.error("Delete order error:", err);
+    }
+  };
+
+  // ==============================
+  // ❌ DELETE MESSAGE
+  // ==============================
+  const deleteMessage = async (id) => {
+    if (!window.confirm("Delete this message?")) return;
+
+    try {
+      const res = await fetch(`${BASE_URL}/api/contact/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: "admin-token-123" },
+      });
+
+      const data = await res.json();
+      console.log("Delete message:", data);
+
+      if (!res.ok) {
+        alert("Failed to delete message");
+        return;
+      }
+
+      fetchMessages();
+    } catch (err) {
+      console.error("Delete message error:", err);
+    }
   };
 
   // ==============================
   // 📄 DOWNLOAD INVOICE
   // ==============================
   const downloadInvoice = (id) => {
-    window.open(`/api/orders/${id}/invoice`, "_blank");
+    window.open(`${BASE_URL}/api/orders/${id}/invoice`, "_blank");
   };
 
   return (
     <div style={{ padding: "20px", fontFamily: "Arial" }}>
-      
       {/* HEADER */}
       <div style={header}>
         <h2>Admin Dashboard</h2>
-
         <button onClick={handleLogout} style={btnLogout}>
           🚪 Logout
         </button>
@@ -126,7 +156,6 @@ const deleteMessage = async (id) => {
         <button onClick={() => setActiveTab("orders")} style={tabBtn}>
           📦 Orders
         </button>
-
         <button onClick={() => setActiveTab("messages")} style={tabBtn}>
           📩 Messages
         </button>
@@ -182,11 +211,17 @@ const deleteMessage = async (id) => {
                   </td>
 
                   <td style={td}>
-                    <button onClick={() => downloadInvoice(order._id)} style={btnBlue}>
+                    <button
+                      onClick={() => downloadInvoice(order._id)}
+                      style={btnBlue}
+                    >
                       Invoice
                     </button>
 
-                    <button onClick={() => deleteOrder(order._id)} style={btnRed}>
+                    <button
+                      onClick={() => deleteOrder(order._id)}
+                      style={btnRed}
+                    >
                       Delete
                     </button>
                   </td>
@@ -206,10 +241,15 @@ const deleteMessage = async (id) => {
             messages.map((msg) => (
               <div key={msg._id} style={card}>
                 <h4>{msg.name}</h4>
-                <p><strong>Email:</strong> {msg.email}</p>
+                <p>
+                  <strong>Email:</strong> {msg.email}
+                </p>
                 <p>{msg.message}</p>
 
-                <button onClick={() => deleteMessage(msg._id)} style={btnRed}>
+                <button
+                  onClick={() => deleteMessage(msg._id)}
+                  style={btnRed}
+                >
                   Delete
                 </button>
               </div>
@@ -221,13 +261,35 @@ const deleteMessage = async (id) => {
   );
 }
 
-// STYLES
+// ==============================
+// 🎨 STYLES
+// ==============================
 const header = { display: "flex", justifyContent: "space-between" };
 const table = { width: "100%", borderCollapse: "collapse" };
-const th = { padding: "10px" };
-const td = { padding: "10px" };
-const tabBtn = { marginRight: "10px", padding: "8px" };
-const btnBlue = { background: "blue", color: "#fff", padding: "6px" };
-const btnRed = { background: "red", color: "#fff", padding: "6px" };
-const btnLogout = { background: "#333", color: "#fff", padding: "8px" };
-const card = { border: "1px solid #ddd", padding: "10px", margin: "10px 0" };
+const th = { padding: "10px", textAlign: "left" };
+const td = { padding: "10px", borderTop: "1px solid #ddd" };
+const tabBtn = { marginRight: "10px", padding: "8px", cursor: "pointer" };
+const btnBlue = {
+  background: "blue",
+  color: "#fff",
+  padding: "6px",
+  marginRight: "5px",
+  cursor: "pointer",
+};
+const btnRed = {
+  background: "red",
+  color: "#fff",
+  padding: "6px",
+  cursor: "pointer",
+};
+const btnLogout = {
+  background: "#333",
+  color: "#fff",
+  padding: "8px",
+  cursor: "pointer",
+};
+const card = {
+  border: "1px solid #ddd",
+  padding: "10px",
+  margin: "10px 0",
+};
