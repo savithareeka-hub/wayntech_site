@@ -1,11 +1,13 @@
-const express = require("express");
-const mongoose = require("mongoose");
-const cors = require("cors");
-require("dotenv").config();
+import express from "express";
+import mongoose from "mongoose";
+import cors from "cors";
+import dotenv from "dotenv";
 
-// ✅ IMPORT MODELS
-const Order = require("./models/Order");
-const Contact = require("./models/Contact");
+// ✅ IMPORT MODELS (IMPORTANT: .js extension required)
+import Order from "./models/Order.js";
+import Contact from "./models/Contact.js";
+
+dotenv.config();
 
 const app = express();
 
@@ -19,7 +21,7 @@ app.use(cors({
 app.use(express.json());
 
 // ==============================
-// ✅ HEALTH CHECK (IMPORTANT for Railway)
+// ✅ HEALTH CHECK
 // ==============================
 app.get("/", (req, res) => {
   res.send("API Running 🚀");
@@ -185,7 +187,7 @@ app.listen(PORT, () => {
 });
 
 // ==============================
-// ❗ GLOBAL ERROR HANDLING (SAFE)
+// ❗ GLOBAL ERROR HANDLING
 // ==============================
 process.on("uncaughtException", err => {
   console.error("Uncaught Exception:", err);
