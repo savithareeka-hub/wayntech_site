@@ -32,7 +32,7 @@ export default function ProductCard({ product }) {
   };
 
   return (
-    <div className="bg-white rounded-xl shadow p-4 flex flex-col justify-between">
+    <div className="bg-white rounded-xl shadow p-4 flex flex-col justify-between hover:shadow-md transition">
 
       {/* IMAGE */}
       <img
@@ -95,13 +95,17 @@ export default function ProductCard({ product }) {
           </button>
         </div>
 
-        {/* ADD TO CART */}
+        {/* ADD TO CART BUTTON */}
         <button
           onClick={handleAdd}
-          className="flex items-center justify-center gap-2 bg-blue-600 text-white px-4 py-2 sm:py-2.5 rounded-lg hover:bg-blue-700 text-sm sm:text-base w-full sm:w-auto whitespace-nowrap transition active:scale-95"
+          className="flex items-center justify-center gap-2 bg-blue-600 text-white px-3 py-2 sm:px-4 sm:py-2.5 rounded-lg hover:bg-blue-700 text-sm sm:text-base w-full sm:w-auto transition active:scale-95"
         >
-          <ShoppingCart size={16} />
-          Add to Cart
+          <ShoppingCart size={18} />
+
+          {/* ❌ Hidden on mobile, visible on desktop */}
+          <span className="hidden sm:inline">
+            Add to Cart
+          </span>
         </button>
 
       </div>
