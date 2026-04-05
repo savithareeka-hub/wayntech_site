@@ -6,7 +6,7 @@ import { Button } from '../components/ui/button';
 import { ArrowRight, Award, Sparkles, Users } from 'lucide-react';
 import Header from '../components/Header.jsx';
 import Footer from '../components/Footer.jsx';
-
+import ClientLogos from "../components/ClientLogos"; // ✅ NEW IMPORT
 
 const HomePage = () => {
   return (
@@ -75,7 +75,6 @@ const HomePage = () => {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-12 max-w-5xl mx-auto">
 
-                {/* Item */}
                 <div className="flex gap-6">
                   <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center">
                     <Award className="text-primary" />
@@ -88,7 +87,6 @@ const HomePage = () => {
                   </div>
                 </div>
 
-                {/* Item */}
                 <div className="flex gap-6">
                   <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center">
                     <Sparkles className="text-primary" />
@@ -101,7 +99,6 @@ const HomePage = () => {
                   </div>
                 </div>
 
-                {/* Item */}
                 <div className="flex gap-6">
                   <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center">
                     <Users className="text-primary" />
@@ -114,7 +111,6 @@ const HomePage = () => {
                   </div>
                 </div>
 
-                {/* Item */}
                 <div className="flex gap-6">
                   <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center">
                     <ArrowRight className="text-primary" />
@@ -130,6 +126,9 @@ const HomePage = () => {
               </div>
             </div>
           </section>
+
+          {/* ✅ CLIENT LOGOS SECTION (NEW) */}
+          <ClientLogos />
 
           {/* CTA */}
           <section className="py-20 bg-muted">
@@ -148,10 +147,6 @@ const HomePage = () => {
           </section>
 
         </main>
-
-        {/* MAP SECTION */}
-        
-        
 
         {/* FOOTER */}
         <Footer />

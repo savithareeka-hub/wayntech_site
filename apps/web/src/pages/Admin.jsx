@@ -2,51 +2,91 @@ import React, { useEffect, useState } from "react";
 
 export default function Admin() {
   const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/orders")
-      .then((res) => res.json())
-      .then((data) => setOrders(data));
+    const token = localStorage.getItem("adminToken");
+
+    // ❌ Not logged in → redirect
+    if (!token) {
+      window.location.href = "/admin-login";
+      return;
+    }
+
+    // ✅ Fetch with token
+   fetch("http://localhost:5000/api/orders", {
+  headers: {
+    Authorization: token,
+  },
+})
+      .then((res) => {
+        if (res.status === 401) {
+          // ❌ Invalid token
+          localStorage.removeItem("adminToken");
+          window.location.href = "/admin-login";
+          return;
+        }
+        return res.json();
+      })
+      .then((data) => {
+        setOrders(data || []);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error(err);
+        setLoading(false);
+      });
   }, []);
 
+  // ✅ LOGOUT FUNCTION
+  const handleLogout = () => {
+    localStorage.removeItem("adminToken");
+    window.location.href = "/admin-login";
+  };
+
   return (
-    <div className="p-6 max-w-6xl mx-auto">
-      <h1 className="text-3xl font-bold mb-6">Admin Orders</h1>
+    <div style={{ padding: "20px" }}>
+      {/* HEADER */}
+      <div style={{ display: "flex", justifyContent: "space-between" }}>
+        <h2>📦 Admin Orders</h2>
+        <button onClick={handleLogout} style={{ padding: "8px 12px" }}>
+          Logout
+        </button>
+      </div>
 
-      {orders.length === 0 ? (
-        <p>No orders yet</p>
+      {/* LOADING */}
+      {loading ? (
+        <p>Loading orders...</p>
+      ) : orders.length === 0 ? (
+        <p>No orders found</p>
       ) : (
-        <div className="space-y-6">
-          {orders.map((order) => (
-            <div
-              key={order.id}
-              className="border p-4 rounded-lg shadow"
-            >
-              <h2 className="font-bold text-lg">
-                Order ID: {order.id}
-              </h2>
+        orders.map((order) => (
+          <div
+            key={order._id}
+            style={{
+              border: "1px solid #ccc",
+              padding: "15px",
+              margin: "15px 0",
+              borderRadius: "8px",
+            }}
+          >
+            <h3>{order.customerName}</h3>
 
-              <p>👤 {order.customer.name}</p>
-              <p>📞 {order.customer.phone}</p>
-              <p>📍 {order.customer.address}</p>
+            <p><b>Phone:</b> {order.phone}</p>
+            <p><b>Address:</b> {order.address}</p>
+            <p><b>Status:</b> {order.status}</p>
 
-              <div className="mt-3">
-                <h3 className="font-semibold">Products:</h3>
+            <ul>
+              {order.items?.map((item, i) => (
+                <li key={i}>
+                  {item.name} x {item.qty} = ₹{item.price * item.qty}
+                </li>
+              ))}
+            </ul>
 
-                {order.cart.map((item, i) => (
-                  <div key={i} className="text-sm">
-                    {item.name} x {item.qty} = ₹
-                    {item.price * item.qty}
-                  </div>
-                ))}
-              </div>
-
-              <p className="mt-3 font-bold">
-                Total: ₹{order.total}
-              </p>
-            </div>
-          ))}
-        </div>
+            <strong>Total: ₹{order.total}</strong>
+          </div>
+        ))
       )}
     </div>
   );

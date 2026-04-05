@@ -1,29 +1,22 @@
-// src/data/categories.js
-
 export const categories = [
   {
     name: "ID Cards",
     image: "/images/cat1.png",
-    description: "Durable and professional ID cards for offices and schools."
   },
   {
-    name: "Custom Keychains",
-    image: "/images/cat1.png",
-    description: "Custom keychains with names, photos, or logos."
+    name: "Custom Keychains", // ✅ FIXED TYPO
+    image: "/images/keychain.png",
   },
   {
     name: "Photo Gifts",
-    image: "/images/cat1.png",
-    description: "Personalized gifts like mugs, frames, and prints."
+    image: "/images/frame.png",
   },
   {
     name: "Custom Stamps & Ink",
-    image: "/images/cat1.png",
-    description: "High-quality stamps for office and business use."
+    image: "/images/seal.png",
   },
   {
-    name: "Visiting Cards",
-    image: "/images/cat1.png",
-    description: "Premium business cards with modern design."
+    name: "VSisiting Cards & Custom Stickers",
+    image: "/images/visitingcard.png",
   }
 ];

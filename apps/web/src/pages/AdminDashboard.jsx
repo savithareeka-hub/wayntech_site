@@ -1,112 +1,225 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 export default function AdminDashboard() {
+  const navigate = useNavigate();
+
+  const [activeTab, setActiveTab] = useState("orders");
   const [orders, setOrders] = useState([]);
+  const [messages, setMessages] = useState([]);
 
-  // form states
-  const [name, setName] = useState("");
-  const [price, setPrice] = useState("");
-  const [category, setCategory] = useState("");
-
-  // load orders
+  // ==============================
+  // 🔐 PROTECT ADMIN PAGE
+  // ==============================
   useEffect(() => {
-    if (!localStorage.getItem("admin")) {
-      window.location.href = "/admin/login";
-    } else {
-      const stored = JSON.parse(localStorage.getItem("orders") || "[]");
-      setOrders(stored);
-    }
-  }, []);
+    const token = localStorage.getItem("token");
 
-  // add product (optional - just UI for now)
-  const addProduct = () => {
-    alert("Product added (static demo)");
-    setName("");
-    setPrice("");
-    setCategory("");
+    if (!token) {
+      navigate("/admin-login");
+    }
+  }, [navigate]);
+
+  // ==============================
+  // 📦 FETCH ORDERS
+  // ==============================
+  const fetchOrders = async () => {
+    const res = await fetch("/api/orders", {
+      headers: { Authorization: "admin-token-123" },
+    });
+    const data = await res.json();
+    setOrders(data);
   };
 
-  // update order status
-  const updateStatus = (id) => {
-    const updated = orders.map((o) =>
-      o.id === id ? { ...o, status: "Completed" } : o
-    );
+  // ==============================
+  // 📩 FETCH MESSAGES
+  // ==============================
+  const fetchMessages = async () => {
+    const res = await fetch("/api/contact", {
+      headers: { Authorization: "admin-token-123" },
+    });
+    const data = await res.json();
+    setMessages(data);
+  };
 
-    setOrders(updated);
-    localStorage.setItem("orders", JSON.stringify(updated));
+  useEffect(() => {
+    fetchOrders();
+    fetchMessages();
+  }, []);
+
+  // ==============================
+  // 🚪 LOGOUT
+  // ==============================
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    navigate("/admin-login");
+  };
+
+  // ==============================
+  // ✏️ UPDATE ORDER STATUS
+  // ==============================
+  const updateStatus = async (id, status) => {
+    await fetch(`/api/orders/${id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "admin-token-123",
+      },
+      body: JSON.stringify({ status }),
+    });
+
+    fetchOrders();
+  };
+
+  // ==============================
+  // ❌ DELETE ORDER
+  // ==============================
+  const deleteOrder = async (id) => {
+    await fetch(`/api/orders/${id}`, {
+      method: "DELETE",
+      headers: { Authorization: "admin-token-123" },
+    });
+
+    fetchOrders();
+  };
+
+  // ==============================
+  // ❌ DELETE MESSAGE
+  // ==============================
+  const deleteMessage = async (id) => {
+    await fetch(`/api/contact/${id}`, {
+      method: "DELETE",
+      headers: { Authorization: "admin-token-123" },
+    });
+
+    fetchMessages();
+  };
+
+  // ==============================
+  // 📄 DOWNLOAD INVOICE
+  // ==============================
+  const downloadInvoice = (id) => {
+    window.open(`/api/orders/${id}/invoice`, "_blank");
   };
 
   return (
-    <div className="p-6">
-      <h1 className="text-3xl mb-6">Admin Panel</h1>
+    <div style={{ padding: "20px", fontFamily: "Arial" }}>
+      
+      {/* HEADER */}
+      <div style={header}>
+        <h2>Admin Dashboard</h2>
 
-      {/* ADD PRODUCT */}
-      <div className="mb-6 border p-4 rounded">
-        <h2 className="text-xl mb-3">Add Product</h2>
+        <button onClick={handleLogout} style={btnLogout}>
+          🚪 Logout
+        </button>
+      </div>
 
-        <input
-          placeholder="Name"
-          className="border p-2 mr-2"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-        />
+      {/* TABS */}
+      <div style={{ marginBottom: "20px" }}>
+        <button onClick={() => setActiveTab("orders")} style={tabBtn}>
+          📦 Orders
+        </button>
 
-        <input
-          placeholder="Price"
-          className="border p-2 mr-2"
-          value={price}
-          onChange={(e) => setPrice(e.target.value)}
-        />
-
-        <input
-          placeholder="Category"
-          className="border p-2 mr-2"
-          value={category}
-          onChange={(e) => setCategory(e.target.value)}
-        />
-
-        <button
-          onClick={addProduct}
-          className="bg-black text-white px-4 py-2"
-        >
-          Add
+        <button onClick={() => setActiveTab("messages")} style={tabBtn}>
+          📩 Messages
         </button>
       </div>
 
       {/* ORDERS */}
-      <h2 className="text-xl mt-6 mb-3">Orders</h2>
+      {activeTab === "orders" && (
+        <div style={{ overflowX: "auto" }}>
+          <table style={table}>
+            <thead>
+              <tr style={{ background: "#f5f5f5" }}>
+                <th style={th}>Customer</th>
+                <th style={th}>Phone</th>
+                <th style={th}>Items</th>
+                <th style={th}>Total</th>
+                <th style={th}>Status</th>
+                <th style={th}>Actions</th>
+              </tr>
+            </thead>
 
-      {orders.length === 0 ? (
-        <p>No orders yet</p>
-      ) : (
-        orders.map((o) => (
-          <div key={o.id} className="border p-4 mb-4 rounded">
-            <p><b>Order ID:</b> {o.id}</p>
-            <p><b>Customer:</b> {o.customer?.name}</p>
-            <p><b>Email:</b> {o.customer?.email}</p>
-            <p><b>Total:</b> ₹{o.total}</p>
-            <p><b>Status:</b> {o.status}</p>
-            <p><b>Date:</b> {o.date}</p>
+            <tbody>
+              {orders.map((order) => (
+                <tr key={order._id}>
+                  <td style={td}>
+                    <strong>{order.customerName}</strong>
+                    <br />
+                    <small>{order.address}</small>
+                  </td>
 
-            {/* ITEMS */}
-            <div className="mt-2">
-              <b>Items:</b>
-              {o.items.map((item, i) => (
-                <div key={i} className="ml-4">
-                  - {item.name} (Qty: {item.qty})
-                </div>
+                  <td style={td}>{order.phone}</td>
+
+                  <td style={td}>
+                    {order.items?.map((item, i) => (
+                      <div key={i}>
+                        {item.name} × {item.qty}
+                      </div>
+                    ))}
+                  </td>
+
+                  <td style={td}>₹{order.totalAmount}</td>
+
+                  <td style={td}>
+                    <select
+                      value={order.status}
+                      onChange={(e) =>
+                        updateStatus(order._id, e.target.value)
+                      }
+                    >
+                      <option>Pending</option>
+                      <option>Completed</option>
+                      <option>Shipped</option>
+                    </select>
+                  </td>
+
+                  <td style={td}>
+                    <button onClick={() => downloadInvoice(order._id)} style={btnBlue}>
+                      Invoice
+                    </button>
+
+                    <button onClick={() => deleteOrder(order._id)} style={btnRed}>
+                      Delete
+                    </button>
+                  </td>
+                </tr>
               ))}
-            </div>
+            </tbody>
+          </table>
+        </div>
+      )}
 
-            <button
-              onClick={() => updateStatus(o.id)}
-              className="bg-green-600 text-white px-3 py-1 mt-3"
-            >
-              Mark Completed
-            </button>
-          </div>
-        ))
+      {/* MESSAGES */}
+      {activeTab === "messages" && (
+        <div>
+          {messages.length === 0 ? (
+            <p>No messages</p>
+          ) : (
+            messages.map((msg) => (
+              <div key={msg._id} style={card}>
+                <h4>{msg.name}</h4>
+                <p><strong>Email:</strong> {msg.email}</p>
+                <p>{msg.message}</p>
+
+                <button onClick={() => deleteMessage(msg._id)} style={btnRed}>
+                  Delete
+                </button>
+              </div>
+            ))
+          )}
+        </div>
       )}
     </div>
   );
 }
+
+// STYLES
+const header = { display: "flex", justifyContent: "space-between" };
+const table = { width: "100%", borderCollapse: "collapse" };
+const th = { padding: "10px" };
+const td = { padding: "10px" };
+const tabBtn = { marginRight: "10px", padding: "8px" };
+const btnBlue = { background: "blue", color: "#fff", padding: "6px" };
+const btnRed = { background: "red", color: "#fff", padding: "6px" };
+const btnLogout = { background: "#333", color: "#fff", padding: "8px" };
+const card = { border: "1px solid #ddd", padding: "10px", margin: "10px 0" };

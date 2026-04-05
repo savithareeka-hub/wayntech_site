@@ -1,5 +1,3 @@
-// src/pages/CategoryPage.jsx
-
 import { useParams, Link } from "react-router-dom";
 import { products } from "../data/products";
 import Header from "../components/Header";
@@ -8,10 +6,13 @@ import ProductCard from "../components/ProductCard";
 
 export default function CategoryPage() {
   const { category } = useParams();
-  const decodedCategory = decodeURIComponent(category);
 
+  // ✅ FIX: DO NOT CHANGE DASHES
+  const formattedCategory = category.toLowerCase();
+
+  // ✅ MATCH PRODUCTS CORRECTLY
   const filtered = products.filter(
-    (p) => p.category === decodedCategory
+    (p) => p.category.toLowerCase() === formattedCategory
   );
 
   return (
@@ -19,8 +20,9 @@ export default function CategoryPage() {
       <Header />
 
       <main className="flex-1 p-6 max-w-7xl mx-auto w-full">
-        <h1 className="text-3xl font-bold text-center mb-6">
-          {decodedCategory}
+
+        <h1 className="text-3xl font-bold text-center mb-6 capitalize">
+          {formattedCategory.replace(/-/g, " ")}
         </h1>
 
         <div className="mb-6 text-center text-gray-500">
@@ -28,8 +30,8 @@ export default function CategoryPage() {
         </div>
 
         {filtered.length === 0 ? (
-          <p className="text-center text-gray-500">
-            No products found
+          <p className="text-center text-red-500">
+            ❌ No products found
           </p>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
@@ -41,9 +43,10 @@ export default function CategoryPage() {
 
         <div className="mt-8 text-center">
           <Link to="/products" className="text-blue-600">
-            ← Back to Categories
+            ← Back to Products
           </Link>
         </div>
+
       </main>
 
       <Footer />
