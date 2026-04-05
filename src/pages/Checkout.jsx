@@ -5,10 +5,8 @@ import { useCart } from "../context/CartContext";
 import { useNavigate } from "react-router-dom";
 
 export default function Checkout() {
-  const { cart, clearCart };
+  const { cart, clearCart } = useCart(); // ✅ FIXED
   const navigate = useNavigate();
-
-  const { cart: cartData, clearCart: clear } = useCart();
 
   // ✅ Form State
   const [form, setForm] = useState({
@@ -20,18 +18,18 @@ export default function Checkout() {
 
   const [loading, setLoading] = useState(false);
 
-  // ✅ Handle Input
+  // ✅ Handle Input Change
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
   // ✅ Calculate Total
-  const total = cartData.reduce(
+  const total = cart.reduce(
     (acc, item) => acc + Number(item.price) * Number(item.qty),
     0
   );
 
-  // ✅ SUBMIT ORDER (UPDATED WITH WHATSAPP)
+  // ✅ Submit Order (UPDATED WITH WHATSAPP FIX)
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -43,6 +41,7 @@ export default function Checkout() {
     try {
       setLoading(true);
 
+      // ✅ Save to backend
       const res = await fetch("https://wayntech-site.onrender.com/api/orders", {
         method: "POST",
         headers: {
@@ -53,7 +52,7 @@ export default function Checkout() {
           phone: form.phone,
           email: form.email,
           address: form.address,
-          items: cartData,
+          items: cart,
           totalAmount: total,
         }),
       });
@@ -64,7 +63,7 @@ export default function Checkout() {
         throw new Error(data.message || "Order failed");
       }
 
-      // ✅ WhatsApp message
+      // ✅ Build WhatsApp message
       const message = `
 🛒 *New Order - WaynTech Cards*
 
@@ -73,7 +72,7 @@ export default function Checkout() {
 📧 Email: ${form.email}
 📍 Address: ${form.address}
 
-${cartData
+${cart
   .map(
     (item) =>
       `• ${item.name} (x${item.qty}) = ₹${item.price * item.qty}`
@@ -87,26 +86,17 @@ Total Amount: ₹${total}
       const encodedMessage = encodeURIComponent(message);
       const phoneNumber = "919074600471";
 
-      // ✅ Detect Mobile
-      const isMobile = /Android|iPhone|iPad|iPod/i.test(
-        navigator.userAgent
-      );
+      // ✅ WhatsApp URL (WORKS EVERYWHERE)
+      const whatsappURL = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
 
-      if (isMobile) {
-        window.location.href = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
-      } else {
-        window.open(
-          `https://web.whatsapp.com/send?phone=${phoneNumber}&text=${encodedMessage}`,
-          "_blank"
-        );
-      }
+      // 🔥 IMPORTANT: Use redirect (NOT window.open)
+      window.location.href = whatsappURL;
 
-      // ✅ SUCCESS
-      alert("✅ Order placed successfully!");
+      // ✅ Clear cart
+      clearCart();
 
-      clear(); // clear cart
-
-      navigate("/");
+      // ❌ DO NOT navigate here (breaks WhatsApp)
+      // navigate("/");
 
     } catch (error) {
       console.error("Checkout Error:", error);
@@ -122,6 +112,7 @@ Total Amount: ₹${total}
 
       <main className="flex-1 max-w-7xl mx-auto p-6 w-full">
 
+        {/* Back Button */}
         <button
           onClick={() => navigate("/cart")}
           className="mb-4 text-gray-600"
@@ -133,7 +124,7 @@ Total Amount: ₹${total}
 
         <div className="grid md:grid-cols-3 gap-6">
 
-          {/* LEFT */}
+          {/* LEFT - FORM */}
           <div className="md:col-span-2 bg-white p-6 rounded-xl shadow">
 
             <h2 className="text-xl font-semibold mb-4">
@@ -181,22 +172,25 @@ Total Amount: ₹${total}
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-lg"
+                className="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-lg font-medium"
               >
                 {loading ? "Placing Order..." : "Place Order"}
               </button>
             </form>
           </div>
 
-          {/* RIGHT */}
+          {/* RIGHT - SUMMARY */}
           <div className="bg-white p-6 rounded-xl shadow h-fit">
 
             <h2 className="text-lg font-semibold mb-4">
               Order Summary
             </h2>
 
-            {cartData.map((item) => (
-              <div key={item.id} className="flex justify-between mb-2 text-sm">
+            {cart.map((item) => (
+              <div
+                key={item.id}
+                className="flex justify-between text-sm mb-2"
+              >
                 <span>{item.name} x{item.qty}</span>
                 <span>₹{item.price * item.qty}</span>
               </div>
@@ -206,7 +200,9 @@ Total Amount: ₹${total}
 
             <div className="flex justify-between font-semibold text-lg">
               <span>Total</span>
-              <span className="text-blue-600">₹{total}</span>
+              <span className="text-blue-600">
+                ₹{total.toFixed(2)}
+              </span>
             </div>
           </div>
 
