@@ -28,7 +28,7 @@ const ContactPage = () => {
     });
   };
 
-  // ✅ HANDLE SUBMIT (CONNECTED TO BACKEND)
+  // ✅ HANDLE SUBMIT (FIXED API)
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -40,21 +40,24 @@ const ContactPage = () => {
     try {
       setIsSubmitting(true);
 
-      const res = await fetch("/api/contact", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      });
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL || "https://wayntech-site.onrender.com"}/api/contact`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(formData),
+        }
+      );
 
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.error || "Failed to send message");
+        throw new Error(data.message || "Failed to send message");
       }
 
-      toast.success("Message sent successfully");
+      toast.success("✅ Message sent successfully!");
 
       // RESET FORM
       setFormData({
@@ -64,8 +67,8 @@ const ContactPage = () => {
       });
 
     } catch (err) {
-      console.error("❌ Error:", err);
-      toast.error("Error sending message");
+      console.error("❌ Contact Error:", err);
+      toast.error(err.message || "Error sending message");
     } finally {
       setIsSubmitting(false);
     }
