@@ -23,7 +23,7 @@ export default function AdminDashboard() {
   // 📦 FETCH ORDERS
   // ==============================
   const fetchOrders = async () => {
-    const res = await fetch("/api/orders", {
+    const res = await fetch("https://wayntech-site.onrender.com/api/orders", {
       headers: { Authorization: "admin-token-123" },
     });
     const data = await res.json();
@@ -34,7 +34,7 @@ export default function AdminDashboard() {
   // 📩 FETCH MESSAGES
   // ==============================
   const fetchMessages = async () => {
-    const res = await fetch("/api/contact", {
+    const res = await fetch("https://wayntech-site.onrender.com/api/contact", {
       headers: { Authorization: "admin-token-123" },
     });
     const data = await res.json();
