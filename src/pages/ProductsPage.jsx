@@ -13,7 +13,7 @@ export default function ProductsPage() {
 
       <main className="flex-1 p-6">
         <h1 className="text-3xl font-bold text-center mb-10">
-          Our Categories
+          Collections
         </h1>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
