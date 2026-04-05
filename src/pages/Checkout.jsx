@@ -37,7 +37,7 @@ export default function Checkout() {
     try {
       setLoading(true);
 
-      // ✅ Save order first
+      // ✅ Save order
       const res = await fetch("https://wayntech-site.onrender.com/api/orders", {
         method: "POST",
         headers: {
@@ -59,13 +59,13 @@ export default function Checkout() {
         throw new Error(data.message || "Order failed");
       }
 
-      // ✅ Detect Mobile ONLY
-      const isMobile = /Android|iPhone|iPad|iPod/i.test(
-        navigator.userAgent
-      );
+      // ✅ STRONG MOBILE DETECTION (FIXED)
+      const isMobile =
+        /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) &&
+        (navigator.maxTouchPoints > 1 || window.innerWidth <= 768);
 
       if (isMobile) {
-        // ✅ Build WhatsApp message
+        // 📱 WhatsApp message
         const message = `
 🛒 *New Order - WaynTech Cards*
 
@@ -88,14 +88,11 @@ Total Amount: ₹${total}
         const encodedMessage = encodeURIComponent(message);
         const phoneNumber = "919074600471";
 
-        const whatsappURL = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
-
-        // 📱 Open WhatsApp ONLY on mobile
-        window.location.href = whatsappURL;
+        window.location.href = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
       } else {
-        // 💻 PC → just success message
+        // 💻 PC → No WhatsApp
         alert("✅ Order placed successfully!");
-        navigate("/"); // or /success page
+        navigate("/");
       }
 
       clearCart();
@@ -125,7 +122,7 @@ Total Amount: ₹${total}
 
         <div className="grid md:grid-cols-3 gap-6">
 
-          {/* FORM */}
+          {/* LEFT - FORM */}
           <div className="md:col-span-2 bg-white p-6 rounded-xl shadow">
 
             <h2 className="text-xl font-semibold mb-4">
@@ -180,7 +177,7 @@ Total Amount: ₹${total}
             </form>
           </div>
 
-          {/* SUMMARY */}
+          {/* RIGHT - SUMMARY */}
           <div className="bg-white p-6 rounded-xl shadow h-fit">
 
             <h2 className="text-lg font-semibold mb-4">
